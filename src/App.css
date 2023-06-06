@@ -37,39 +37,6 @@ button {
   color: white;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-
-  background: var(--bg-primay);
-  color: var(--primay);
-}
-
-.App-link {
-  color: #ffff;
-  color: var(--link);
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 button {
   font-size: calc(10px + 2vmin);
 }
@@ -81,8 +48,51 @@ button {
 
 .submit {
   width: 300px;
+  border-radius: 10px;
 }
 
 a:active {
   color: white;
+}
+
+.checkMark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.hidden {
+  display: none;
+}
+
+#tick-mark {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 10px;
+}
+
+#tick-mark::before {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 50%;
+  width: 3px;
+  background-color: #336699;
+  content: '';
+  transform: translateX(10px) rotate(-45deg);
+  transform-origin: left bottom;
+}
+
+#tick-mark::after {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background-color: #336699;
+  content: '';
+  transform: translateX(10px) rotate(-45deg);
+  transform-origin: left bottom;
 }

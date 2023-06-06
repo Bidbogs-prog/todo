@@ -3,15 +3,24 @@ import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '../../styles/common/button'
 import { TodoContainer } from '../../styles/common/containers'
 import { Input } from '../../styles/common/input'
+import { db } from '../firebase.js'
+import { collection, onSnapshot } from 'firebase/firestore'
 
 type Todo = {
   name: string
   isEdit: boolean
+  isDone: boolean
 }
 
 export const TodoComponent = () => {
   // our todo list state
   const [list, setList] = useState<ReadonlyArray<Todo>>([])
+
+  // useEffect(() => {
+  //   onSnapshot(collection(db, 'todos'), (snapshot) => {
+  //     setList(snapshot.docs.map((doc) => doc.data()))
+  //   })
+  // }, [list])
 
   // access the input html element and its data
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -23,9 +32,12 @@ export const TodoComponent = () => {
     const inputValue = inputRef.current?.value
 
     if (inputValue !== undefined && inputValue !== '' && inputRef.current !== null) {
-      setList((prevState) => [...prevState, { name: inputValue, isEdit: false }])
+      setList((prevState) => [
+        ...prevState,
+        { name: inputValue, isEdit: false, isDone: false },
+      ])
 
-      const todos = [...list, { name: inputValue, isEdit: false }]
+      const todos = [...list, { name: inputValue, isEdit: false, isDone: false }]
 
       localStorage.setItem('todos', JSON.stringify(todos))
 
@@ -128,25 +140,49 @@ export const TodoComponent = () => {
     [handleEditClick],
   )
 
+  const handleDone = useCallback(
+    (todoId: number) => {
+      //will return a memoized version of the callback that only changes if one of the inputs has changed.
+
+      const newTodos = list.map((item, index) => {
+        if (index === todoId) {
+          // edit the todo with isEdit true and return it instead of the old one
+          const newTodo = { ...item, isDone: !item.isDone }
+          return newTodo
+        }
+        // return old ones unchanged
+        return item
+      })
+
+      setList(newTodos)
+
+      localStorage.setItem('todos', JSON.stringify(newTodos))
+    },
+    [list],
+  )
+
   // 1 run after component mounting
   useEffect(() => {
-    const localStorageTodos = localStorage.getItem('todos')
+    onSnapshot(collection(db, 'todos'), (snapshot) => {
+      setList(snapshot.docs.map((doc) => doc.data()) as Todo[])
+    })
+    // const localStorageTodos = localStorage.getItem('todos')
 
-    if (localStorageTodos === null) {
-      localStorage.setItem('todos', JSON.stringify([]))
+    // if (localStorageTodos === null) {
+    //   localStorage.setItem('todos', JSON.stringify([]))
 
-      return
-    }
+    //   return
+    // }
 
-    setList(
-      JSON.parse(localStorageTodos).map((todo: Todo) => ({ ...todo, isEdit: false })),
-    )
-  }, [])
+    // setList(
+    //   JSON.parse(localStorageTodos).map((todo: Todo) => ({ ...todo, isEdit: false })),
+    // )
+  }, [list])
 
   return (
     <div>
       <ul>
-        {list.map(({ name, isEdit }, index) => {
+        {list.map(({ name, isEdit, isDone }, index) => {
           return (
             <TodoContainer key={index}>
               {isEdit ? (
@@ -167,7 +203,11 @@ export const TodoComponent = () => {
                   <Button onClick={() => handleCancel(index)}>Cancel</Button>
                 </>
               ) : (
-                <Button onClick={() => handleEdit(index)}>Edit</Button>
+                <>
+                  <Button onClick={() => handleEdit(index)}>Edit</Button>
+                  <Button onClick={() => handleDone(index)}>Done</Button>
+                  {isDone ? <div id='tick-mark'></div> : null}
+                </>
               )}
             </TodoContainer>
           )
